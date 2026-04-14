@@ -30,7 +30,7 @@ public class RecordObservationCommand implements Command {
     }
     @Override
     public void execute() {
-        if(type == "measurement"){
+        if(Objects.equals(type, "measurement")){
             LocalDate localDate = LocalDate.parse(inputs[6].toString());
             Integer protocolId = null;
             if(inputs[4] != ""){
@@ -51,7 +51,7 @@ public class RecordObservationCommand implements Command {
             }
             Integer protocolId = null;
             if(inputs[3] != ""){
-                protocolId = Integer.parseInt(inputs[4].toString());
+                protocolId = Integer.parseInt(inputs[3].toString());
             }
             CategoryObservation observation = observationFactory.createCategoryObservation(Integer.parseInt(inputs[0].toString()), Integer.parseInt(inputs[1].toString()), presence, protocolId, java.sql.Date.valueOf(localDate));
             if(observation != null){

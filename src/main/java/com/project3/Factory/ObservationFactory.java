@@ -23,7 +23,7 @@ public class ObservationFactory {
         Protocol protocol = protocolId != null ? orderAccess.findProtocol(protocolId) : null;
 
 
-        if(type.getKind() == PhenomenonKind.QUALITATIVE && !type.getAllowedUnits().contains(unit)){
+        if(type.getKind() == PhenomenonKind.QUALITATIVE || !type.getAllowedUnits().contains(unit)){
             System.out.println("Invalid Measurement Creation");
             return null;
         }
@@ -48,7 +48,7 @@ public class ObservationFactory {
         Phenomenon phenomenon = orderAccess.getPhenomenaById(phenomenonId);
         Protocol protocol = protocolId != null ? orderAccess.findProtocol(protocolId) : null;
 
-        if(phenomenon.getPhenomenonType().getKind() == PhenomenonKind.QUANTITATIVE && !phenomenon.getPhenomenonType().getPhenomena().contains(phenomenon)){
+        if(phenomenon.getPhenomenonType().getKind() == PhenomenonKind.QUANTITATIVE || !phenomenon.getPhenomenonType().getPhenomena().contains(phenomenon)){
             System.out.println("Invalid Category Observation");
             return null;
         }

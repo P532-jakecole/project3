@@ -16,16 +16,6 @@ public class OrderAccess {
     @PersistenceContext
     private EntityManager entityManager;
 
-//    public Patient registerPatient(String fullName, Date dob, String note) {
-//        Patient p = new Patient();
-//        p.setFullName(fullName);
-//        p.setDateOfBirth(dob);
-//        p.setNote(note);
-//
-//        entityManager.persist(p);
-//        return p;
-//    }
-
     public void addPatient(Patient patient) {
         entityManager.persist(patient);
     }
@@ -47,16 +37,6 @@ public class OrderAccess {
             entityManager.merge(p);
         }
     }
-
-//    public PhenomenonType createPhenomenonType(String name, PhenomenonKind kind, String[] allowedUnits) {
-//        PhenomenonType pt = new PhenomenonType();
-//        pt.setName(name);
-//        pt.setKind(kind);
-//        pt.setAllowedUnits(allowedUnits);
-//
-//        entityManager.persist(pt);
-//        return pt;
-//    }
 
     public void addPhenomenonType(PhenomenonType pt){
         entityManager.persist(pt);
@@ -108,16 +88,6 @@ public class OrderAccess {
         return entityManager.find(Phenomenon.class, id);
     }
 
-//    public Protocol createProtocol(String name, String description, AccuracyRating rating) {
-//        Protocol protocol = new Protocol();
-//        protocol.setName(name);
-//        protocol.setDescription(description);
-//        protocol.setAccuracyRating(rating);
-//
-//        entityManager.persist(protocol);
-//        return protocol;
-//    }
-
     public void addProtocol(Protocol p){
         entityManager.persist(p);
     }
@@ -140,63 +110,9 @@ public class OrderAccess {
         }
     }
 
-//    public Measurement recordMeasurement(
-//            Integer patientId,
-//            Integer phenomenonTypeId,
-//            Double amount,
-//            String unit,
-//            Integer protocolId,
-//            Date applicabilityTime) {
-//
-//        Patient patient = findPatient(patientId);
-//        PhenomenonType type = findPhenomenonType(phenomenonTypeId);
-//        Protocol protocol = protocolId != null ? findProtocol(protocolId) : null;
-//
-//        Measurement m = new Measurement();
-//        m.setPatient(patient);
-//        m.setPhenomenonType(type);
-//        m.setAmount(amount);
-//        m.setUnit(unit);
-//        m.setProtocol(protocol);
-//
-//        Date now = new Date();
-//        m.setRecordingTime(now);
-//        m.setApplicabilityTime(applicabilityTime != null ? applicabilityTime : now);
-//        m.setStatus(ObservationStatus.ACTIVE);
-//
-//        entityManager.persist(m);
-//        return m;
-//    }
-
     public void addMeasurement(Measurement measurement){
         entityManager.persist(measurement);
     }
-
-//    public CategoryObservation recordCategoryObservation(
-//            Integer patientId,
-//            Integer phenomenonId,
-//            Presence presence,
-//            Integer protocolId,
-//            Date applicabilityTime) {
-//
-//        Patient patient = findPatient(patientId);
-//        Phenomenon phenomenon = entityManager.find(Phenomenon.class, phenomenonId);
-//        Protocol protocol = protocolId != null ? findProtocol(protocolId) : null;
-//
-//        CategoryObservation obs = new CategoryObservation();
-//        obs.setPatient(patient);
-//        obs.setPhenomenon(phenomenon);
-//        obs.setPresence(presence);
-//        obs.setProtocol(protocol);
-//
-//        Date now = new Date();
-//        obs.setRecordingTime(now);
-//        obs.setApplicabilityTime(applicabilityTime != null ? applicabilityTime : now);
-//        obs.setStatus(ObservationStatus.ACTIVE);
-//
-//        entityManager.persist(obs);
-//        return obs;
-//    }
 
     public void addCategoryObservation(CategoryObservation observation){
         entityManager.persist(observation);
