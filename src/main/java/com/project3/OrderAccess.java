@@ -91,6 +91,10 @@ public class OrderAccess {
         return p;
     }
 
+    public void addPhenomenon(Phenomenon phenomenon){
+        entityManager.persist(phenomenon);
+    }
+
     public ArrayList<Phenomenon> findPhenomenaByType(Integer typeId) {
         return (ArrayList<Phenomenon>) entityManager
                 .createQuery(

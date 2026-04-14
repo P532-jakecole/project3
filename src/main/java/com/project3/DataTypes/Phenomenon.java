@@ -1,5 +1,7 @@
 package com.project3.DataTypes;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 
 @Entity
@@ -11,6 +13,7 @@ public class Phenomenon {
 
     private String name;
 
+    @JsonIgnoreProperties("phenomena")
     @ManyToOne
     private PhenomenonType phenomenonType;
 

@@ -2,6 +2,7 @@ package com.project3.DataTypes;
 
 import jakarta.persistence.*;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 public class PhenomenonType {
@@ -15,8 +16,11 @@ public class PhenomenonType {
     @Enumerated(EnumType.STRING)
     private PhenomenonKind kind;
 
-    private String[] allowedUnits;
-    @OneToMany(mappedBy = "phenomenonType")
+    @ElementCollection
+    private List<String> allowedUnits;
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "phenomenonType", cascade = CascadeType.ALL)
     private List<Phenomenon> phenomena;
 
     public Integer getId() { return id; }
@@ -27,8 +31,8 @@ public class PhenomenonType {
     public PhenomenonKind getKind() { return kind; }
     public void setKind(PhenomenonKind kind) { this.kind = kind; }
 
-    public String[] getAllowedUnits() { return allowedUnits; }
-    public void setAllowedUnits(String[] allowedUnits) { this.allowedUnits = allowedUnits; }
+    public List<String> getAllowedUnits() { return allowedUnits; }
+    public void setAllowedUnits(List<String> allowedUnits) { this.allowedUnits = allowedUnits; }
 
     public List<Phenomenon> getPhenomena() { return phenomena; }
     public void setPhenomena(List<Phenomenon> phenomena) { this.phenomena = phenomena; }

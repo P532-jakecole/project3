@@ -25,7 +25,20 @@ public class ProtocolManager {
         Protocol protocol = new Protocol();
         protocol.setName((String) inputs[0]);
         protocol.setDescription((String) inputs[1]);
-        protocol.setAccuracyRating((AccuracyRating) inputs[2]);
+
+        AccuracyRating accuracyRating = null;
+        switch (inputs[2].toString().toLowerCase()){
+            case "high":
+                accuracyRating = AccuracyRating.HIGH;
+                break;
+            case "medium":
+                accuracyRating = AccuracyRating.MEDIUM;
+                break;
+            case "low":
+                accuracyRating = AccuracyRating.LOW;
+                break;
+        }
+        protocol.setAccuracyRating(accuracyRating);
         orderAccess.addProtocol(protocol);
     }
 }

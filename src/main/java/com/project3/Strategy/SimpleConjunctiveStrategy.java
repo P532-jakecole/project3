@@ -9,19 +9,25 @@ import java.util.Objects;
 public class SimpleConjunctiveStrategy implements DiagnosisStrategy{
     @Override
     public boolean evaluate(AssociativeFunction rule, List<Observation> patientObservations) {
+        System.out.println(rule.getName() + " " + rule.getProductConcept());
         String[] argument = rule.getArgumentConcepts();
         Date current = new Date();
+
         boolean currentFound;
         for(String arg : argument){
+            System.out.println("arg: " + arg);
             currentFound = false;
             for(Observation obs : patientObservations){
-                if(obs.getApplicabilityTime().after(current)){
+                if(obs.getStatus() == ObservationStatus.ACTIVE){
                     if(obs instanceof CategoryObservation){
+                        System.out.println("Category");
+                        System.out.println(((CategoryObservation) obs).getPhenomenon().getName());
                         if(Objects.equals(((CategoryObservation) obs).getPhenomenon().getName(), arg)  && ((CategoryObservation) obs).getPresence() == Presence.PRESENT){
                             currentFound = true;
                             break;
                         }
                     }else if(obs instanceof Measurement){
+                        System.out.println(((Measurement) obs).getPhenomenonType().getName());
                         if(Objects.equals(((Measurement) obs).getPhenomenonType().getName(), arg)){
                             currentFound = true;
                             break;

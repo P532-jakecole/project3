@@ -1,9 +1,9 @@
 package com.project3.Command;
 
 import com.project3.DataTypes.Patient;
-import com.project3.Factory.ObservationFactory;
 import com.project3.OrderAccess;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 public class CreatePatientCommand implements Command {
@@ -16,7 +16,8 @@ public class CreatePatientCommand implements Command {
 
     public CreatePatientCommand(Object[] inputs, OrderAccess orderAccess, String staff) {
         this.name = (String) inputs[0];
-        this.dob = (Date) inputs[1];
+        LocalDate localDate = LocalDate.parse(inputs[1].toString());
+        this.dob = java.sql.Date.valueOf(localDate);
         this.note = (String) inputs[2];
         this.orderAccess = orderAccess;
         this.staff = staff;

@@ -44,4 +44,8 @@ public abstract class Observation {
 
     public ObservationStatus getStatus() { return status; }
     public void setStatus(ObservationStatus status) { this.status = status; }
+
+    public String getType() {
+        return this instanceof Measurement ? "MEASUREMENT" : "CATEGORY";
+    }
 }

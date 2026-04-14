@@ -27,6 +27,10 @@ public class PatientManager {
         this.diagnosisEngine = new DiagnosisEngine();
         this.commandLog = commandLog;
         this.mapper = new ObjectMapper();
+
+        if(orderAccess.findAllAssociativeFunctions().isEmpty()){
+            orderAccess.createAssociativeFunction("Diabetes", new String[] { "Overweight", "Weight" }, "Diabetes");
+        }
     }
 
     public ArrayList<Patient> getPatients(){

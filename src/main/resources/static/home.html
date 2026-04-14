@@ -10,6 +10,30 @@
         nav button {
             margin-right: 10px;
         }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 20px;
+            width: 300px;
+            border-radius: 8px;
+        }
+
+        .inference-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: #f2f2f2;
+            border-radius: 5px;
+        }
         .hidden {
             display: none;
         }
@@ -60,14 +84,21 @@
         const res = await fetch(host + '/api/patients');
         const data = await res.json();
 
-        const patientList = document.querySelector("#patientList ul");
+        const tableBody = document.querySelector("#patientTable tbody");
+        //const patientList = document.querySelector("#patientList ul");
 
-        patientList.innerHTML = '';
+        tableBody.innerHTML = '';
         data.forEach(p => {
-            const li = document.createElement('li');
-            li.innerText = p.fullName;
-            li.onclick = () => loadPatientDetail(p.id);
-            patientList.appendChild(li);
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${p.fullName}</td>
+                <td>${p.dateOfBirth}</td>
+                <td>${p.note}</td>
+                <td><button onclick="loadPatientDetail(${p.id})">See Patient Details</button></td>
+            `
+            // li.onclick = () => loadPatientDetail(p.id);
+            // patientList.appendChild(li);
+            tableBody.appendChild(row);
         });
     }
 
@@ -79,18 +110,48 @@
         const data = await res.json();
 
         const observationTable = document.querySelector("#observationTable tbody");
+        //const categoryTable = document.querySelector("#categoryTable tbody");
 
         observationTable.innerHTML = '';
+        //categoryTable.innerHTML = '';
         data.forEach(o => {
-            const row = `<tr>
+            console.log(o);
+            let recordingTime = o.recordingTime.split("T")[0];
+            let applicabilityTime = o.applicabilityTime.split("T")[0];
+            let protocol = 'N/A';
+            if(o.protocol != null){
+                protocol = o.protocol.name;
+            }
+            if(o.type == "MEASUREMENT"){
+                const row = `
+                    <tr>
               <td>${o.type}</td>
-              <td>${o.phenomenonType?.name || ''}</td>
-              <td>${o.amount || o.presence}</td>
-              <td>${o.unit || ''}</td>
+              <td>${o.phenomenonType.name}</td>
+              <td>${o.amount}</td>
+              <td>${o.unit}</td>
+              <td>${recordingTime}</td>
+              <td>${applicabilityTime}</td>
+              <td>${protocol}</td>
+              <td>${o.status}</td>
+              <td><button onclick="rejectObservation(${o.id})">Reject</button></td>
+            </tr>
+                `
+                observationTable.innerHTML += row;
+            }else{
+                console.log(o.phenomenon);
+                const row = `<tr>
+              <td>${o.type}</td>
+              <td>${o.phenomenon.phenomenonType.name}</td>
+              <td>'N/A'</td>
+              <td>${o.phenomenon.name}</td>
+              <td>${recordingTime}</td>
+              <td>${applicabilityTime}</td>
+              <td>${protocol}</td>
               <td>${o.status}</td>
               <td><button onclick="rejectObservation(${o.id})">Reject</button></td>
             </tr>`;
-            observationTable.innerHTML += row;
+                observationTable.innerHTML += row;
+            }
         });
     }
 
@@ -98,15 +159,81 @@
         const cmd = await (await fetch(host + '/api/command-log')).json();
         const audit = await (await fetch(host + '/api/audit-log')).json();
 
-        const commandLog = document.querySelector("#commandLog ul");
-        const auditLog = document.querySelector("#auditLog ul");
+        const commandLog = document.querySelector("#commandLog tbody");
+        const auditLog = document.querySelector("#auditLog tbody");
 
-        commandLog.innerHTML = cmd.map(c => `<li>${c.commandType}</li>`).join('');
-        auditLog.innerHTML = audit.map(a => `<li>${a.event}</li>`).join('');
+        commandLog.innerHTML = ``;
+        auditLog.innerHTML = ``;
+        cmd.forEach(p => {
+            let executionTime = p.executedAt.split("T")[0];
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${p.commandType}</td>
+                <td>${executionTime}</td>
+            `
+            commandLog.appendChild(row);
+        });
+
+        audit.forEach(p => {
+            let timestamp = p.timestamp.split("T")[0];
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${p.event}</td>
+                <td>${p.observationId}</td>
+                <td>${p.patientId}</td>
+                <td>${timestamp}</td>
+            `
+            auditLog.appendChild(row);
+        });
+
+        // commandLog.innerHTML = cmd.map(c => `<li>${c.commandType}</li>`).join('');
+        // auditLog.innerHTML = audit.map(a => `<li>${a.event}</li>`).join('');
+    }
+
+    async function loadCatalogue() {
+        const phenTypes = await (await fetch(host + '/api/phenomenon-types')).json();
+        const protocols = await (await fetch(host + '/api/protocols')).json();
+
+        const typesTable = document.querySelector("#phenomenonTypeTable tbody");
+        const protocolTable = document.querySelector("#protocolTable tbody");
+
+        typesTable.innerHTML = ``;
+        protocolTable.innerHTML = ``;
+        phenTypes.forEach(p => {
+            let list = "";
+            if (p.kind === "QUANTITATIVE") {
+                list = p.allowedUnits ? p.allowedUnits.join(", ") : "";
+            } else {
+                list = p.phenomena ? p.phenomena.map(ph => ph.name).join(", ") : "";
+            }
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${p.id}</td>
+                <td>${p.kind}</td>
+                <td>${p.name}</td>
+                <td>${list}</td>
+            `
+            typesTable.appendChild(row);
+        });
+
+        protocols.forEach(p => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${p.id}</td>
+                <td>${p.name}</td>
+                <td>${p.description}</td>
+                <td>${p.accuracyRating}</td>
+            `
+            protocolTable.appendChild(row);
+        });
+
+        // commandLog.innerHTML = cmd.map(c => `<li>${c.commandType}</li>`).join('');
+        // auditLog.innerHTML = audit.map(a => `<li>${a.event}</li>`).join('');
     }
 
     loadPatients();
     setInterval(loadLogs, 3000);
+    setInterval(loadCatalogue, 3000);
 </script>
 
 <h1>Medical Tracker</h1>
@@ -120,65 +247,100 @@
 <div id="patients" class="container">
     <h2>Patients</h2>
 
-    <form onsubmit="createPatient()">
+    <form onsubmit="createPatient(event)">
         <input id="fullName" placeholder="Full Name" required>
         <input id="dob" type="date" required>
         <input id="note" placeholder="Note">
         <button type="submit">Add Patient</button>
     </form>
 
-    <ul id="patientList"></ul>
+    <h2>Patient List</h2>
+    <table id="patientTable">
+        <thead>
+        <tr>
+            <th>Full Name</th>
+            <th>Date Of Birth</th>
+            <th>Note</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 </div>
 
 <div id="patientDetail" class="container hidden">
     <h2>Patient Detail</h2>
     <button onclick="showPage('patients')">Back</button>
 
+    <h3 style="align-self: center;">Observation Table</h3>
     <table id="observationTable">
         <thead>
         <tr>
-            <th>Type</th><th>Phenomenon</th><th>Value</th><th>Unit</th><th>Status</th><th>Action</th>
+            <th>Type</th><th>Phenomenon Type</th><th>Value</th><th>Unit/Phenomenon</th><th>Recording Time</th><th>Applicable Time</th><th>Protocol</th><th>Status</th>
         </tr>
         </thead>
         <tbody></tbody>
     </table>
 
     <h3>Measurement</h3>
-    <form onsubmit="recordMeasurement()">
+    <form onsubmit="recordMeasurement(event)">
         <input id="mType" placeholder="Phenomenon Type ID" required>
         <input id="amount" type="number" placeholder="Amount" required>
         <input id="unit" placeholder="Unit" required>
+        <input id="applicabilityTimestamp" type="date" placeholder="Applicable Timestamp">
         <input id="attachedProtocol" placeholder="(optional) Used Protocol ID">
         <button type="submit">Record</button>
     </form>
 
     <h3>Category Observation</h3>
-    <form onsubmit="recordCategory()">
+    <form onsubmit="recordCategory(event)">
         <input id="phenomenon" placeholder="Phenomenon ID" required>
         <select id="presence">
             <option value="PRESENT">PRESENT</option>
             <option value="ABSENT">ABSENT</option>
         </select>
+        <input id="applicability" type="date" placeholder="Applicable Timestamp">
+        <input id="attachedProtocol2" placeholder="(optional) Used Protocol ID">
         <button type="submit">Record</button>
     </form>
 
     <button onclick="evaluateRules()">Evaluate Rules</button>
-    <ul id="inferenceList"></ul>
+
+    <div id="inferenceModal" class="modal">
+        <div class="modal-content">
+            <h3>Inferred Observations</h3>
+            <div id="inferenceBody"></div>
+            <button onclick="closeModal()">Close</button>
+        </div>
+    </div>
 </div>
 
 <div id="catalogue" class="container hidden">
     <h2>Catalogue</h2>
 
-    <form onsubmit="createPhenomenonType()">
+    <h2> Create PhenomenonType </h2>
+    <form onsubmit="createPhenomenonType(event)">
         <input id="ptypeName" placeholder="Name">
-        <select id="ptypeKind">
-            <option value="QUANT">QUANT</option>
-            <option value="QUAL">QUAL</option>
+        <select id="ptypeKind" onchange="togglePhenomenonInputs()">
+            <option value="QUANTITATIVE">QUANTITATIVE</option>
+            <option value="QUALITATIVE">QUALITATIVE</option>
         </select>
+
+        <div id="quantSection">
+            <h4>Allowed Units</h4>
+            <div id="unitList"></div>
+            <button type="button" onclick="addUnit()">+ Add Unit</button>
+        </div>
+
+        <div id="qualSection" style="display:none;">
+            <h4>Phenomena</h4>
+            <div id="phenomenonList"></div>
+            <button type="button" onclick="addPhenomenon()">+ Add Phenomenon</button>
+        </div>
         <button type="submit">Add</button>
     </form>
 
-    <form onsubmit="createProtocol()">
+    <h2> Create Protocol </h2>
+    <form onsubmit="createProtocol(event)">
         <input id="protocolName" placeholder="Name">
         <input id="protocolDesc" placeholder="Description">
         <select id="accuracy">
@@ -188,29 +350,87 @@
         </select>
         <button type="submit">Add</button>
     </form>
+
+    <h3 style="align-self: center;">Phenomenon Types</h3>
+    <table id="phenomenonTypeTable">
+        <thead>
+        <tr>
+            <th>ID</th><th>Kind</th><th>Name</th><th>Allowed Values</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <br>
+    <h3 style="align-self: center;">Protocols</h3>
+    <table id="protocolTable">
+        <thead>
+        <tr>
+            <th>ID</th><th>Name</th><th>Description</th><th>Accuracy Rating</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 </div>
 
 <div id="logs" class="container hidden">
     <h2>Logs</h2>
     <div class="flex">
-        <ul id="commandLog"></ul>
-        <ul id="auditLog"></ul>
+        <table id="commandLog">
+            <thead>
+            <tr>
+                <th>Command Type</th><th>Execution Time</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <table id="auditLog">
+            <thead>
+            <tr>
+                <th>Event</th><th>Observation Id</th><th>Patient Id</th><th>Timestamp</th>
+            </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
 </div>
 
 <script>
+    function addUnit() {
+        let container = document.getElementById("unitList");
 
-    async function createPatient() {
+        let input = document.createElement("input");
+        input.placeholder = "Unit";
+
+        container.appendChild(input);
+    }
+
+    function addPhenomenon() {
+        let container = document.getElementById("phenomenonList");
+
+        let input = document.createElement("input");
+        input.placeholder = "Phenomenon";
+
+        container.appendChild(input);
+    }
+
+    function togglePhenomenonInputs() {
+        let kind = document.getElementById("ptypeKind").value;
+
+        document.getElementById("quantSection").style.display =
+            kind === "QUANTITATIVE" ? "block" : "none";
+
+        document.getElementById("qualSection").style.display =
+            kind === "QUALITATIVE" ? "block" : "none";
+    }
+
+    async function createPatient(e) {
+        e.preventDefault();
         let fullName = document.getElementById("fullName");
         let dob = document.getElementById("dob");
         let note = document.getElementById("note");
 
-        let body = {
-            fullName: fullName.value,
-            dateOfBirth: dob.value,
-            note: note.value,
-            staff: staff
-        };
+        let body = [ fullName.value, dob.value, note.value, staff ];
 
         let request = {
             method: "POST",
@@ -222,20 +442,29 @@
         await loadPatients();
     }
 
-    async function recordMeasurement() {
+    async function recordMeasurement(e) {
+        e.preventDefault();
         let mType = document.getElementById("mType");
         let amount = document.getElementById("amount");
         let unit = document.getElementById("unit");
-        let protocol = document.getElementById("attachedProtocol");
+        let applicability = document.getElementById("applicabilityTimestamp")
+        if(!applicability.value){
+            applicability.value = new Date().toISOString().split("T")[0];
+        }
+        let protocolId = document.getElementById("attachedProtocol");
+        if(!protocolId.value){
+            protocolId.value = null;
+        }
 
-        let body = {
-            patient: currentPatient,
-            phenomenonType: mType.value,
-            amount: amount.value,
-            unit: unit.value,
-            protocol: protocol,
-            staff: staff
-        };
+        let body = [
+            currentPatient,
+            mType.value,
+            amount.value,
+            unit.value,
+            protocolId.value,
+            staff,
+            applicability.value
+        ];
 
         let request = {
             method: "POST",
@@ -248,16 +477,28 @@
     }
 
 
-    async function recordCategory() {
+    async function recordCategory(e) {
+        e.preventDefault();
+
         let phenomenon = document.getElementById("phenomenon");
         let presence = document.getElementById("presence");
+        let applicability = document.getElementById("applicabilityTimestamp")
+        if(!applicability.value){
+            applicability.value = new Date().toISOString().split("T")[0];
+        }
+        let protocolId = document.getElementById("attachedProtocol2");
+        if(!protocolId.value){
+            protocolId.value = null;
+        }
 
-        let body = {
-            patient: { id: currentPatient },
-            phenomenon: { id: phenomenon.value },
-            presence: presence.value,
-            staff: staff
-        };
+        let body = [
+            currentPatient,
+            phenomenon.value,
+            presence.value,
+            protocolId.value,
+            applicability.value,
+            staff
+        ];
 
         let request = {
             method: "POST",
@@ -282,35 +523,86 @@
             }
         }
 
-        let data = {
-            reason: reason,
-            staff: staff
-        }
-        await fetch(host + `/api/observations/${id}/reject`, { method: "POST", body: JSON.stringify(data) });
+        let data = [
+            reason,
+            staff
+        ]
+        await fetch(host + `/api/observations/${id}/reject`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
+        });
         await loadPatientDetail(currentPatient);
     }
 
+    // async function evaluateRules() {
+    //     let body = [staff];
+    //     const res = await fetch(host + `/api/patients/${currentPatient}/evaluate`, {
+    //         method: 'POST',headers: {
+    //             "Content-Type": "application/json"
+    //         },
+    //         body: JSON.stringify(body)
+    //     });
+    //     const data = await res.json();
+    //
+    //     let inferenceList = document.getElementById("inferenceList");
+    //
+    //     inferenceList.innerHTML = data.map(d => `<li>${d}</li>`).join('');
+    // }
+
     async function evaluateRules() {
-        let body = {
-            staff: staff
-        };
-        const res = await fetch(host + `/api/patients/${currentPatient}/evaluate`, { method: 'POST', body: JSON.stringify(body) });
-        const data = await res.json();
+        let s = [staff];
 
-        let inferenceList = document.getElementById("inferenceList");
+        let response = await fetch(host + `/api/patients/${currentPatient}/evaluate`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(s)
+        });
+        let data = await response.json();
 
-        inferenceList.innerHTML = data.map(d => `<li>${d}</li>`).join('');
+        const body = document.getElementById("inferenceBody");
+        body.innerHTML = "";
+
+        data.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "inference-item";
+            div.innerText = item;
+            body.appendChild(div);
+        });
+
+        document.getElementById("inferenceModal").style.display = "block";
     }
 
-    async function createPhenomenonType() {
+    function closeModal() {
+        document.getElementById("inferenceModal").style.display = "none";
+    }
+
+    async function createPhenomenonType(e) {
+        e.preventDefault();
 
         let ptypeName = document.getElementById("ptypeName");
         let ptypeKind = document.getElementById("ptypeKind");
+        let list;
 
-        let body = {
-            name: ptypeName.value,
-            kind: ptypeKind.value
-        };
+        if(ptypeKind.value === "QUALITATIVE"){
+            list = Array.from(document.querySelectorAll("#phenomenonList input"))
+                .map(i => i.value)
+                .filter(v => v.trim() !== "");
+        }else{
+            list = Array.from(document.querySelectorAll("#unitList input"))
+                .map(i => i.value)
+                .filter(v => v.trim() !== "");
+        }
+
+        let body = [
+            ptypeName.value,
+            ptypeKind.value,
+            list
+        ];
 
         let request = {
             method: "POST",
@@ -321,16 +613,18 @@
         await fetch(host + "/api/phenomenon-types", request);
     }
 
-    async function createProtocol() {
+    async function createProtocol(e) {
+        e.preventDefault();
+
         let protocolName = document.getElementById("protocolName");
         let protocolDesc = document.getElementById("protocolDesc");
         let accuracy = document.getElementById("accuracy");
 
-        let body = {
-            name: protocolName.value,
-            description: protocolDesc.value,
-            accuracyRating: accuracy.value
-        };
+        let body = [
+            protocolName.value,
+            protocolDesc.value,
+            accuracy.value
+        ];
 
         let request = {
             method: "POST",

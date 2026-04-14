@@ -23,7 +23,7 @@ public class ObservationFactory {
         Protocol protocol = protocolId != null ? orderAccess.findProtocol(protocolId) : null;
 
 
-        if(type.getKind() == PhenomenonKind.QUALITATIVE && !Arrays.asList(type.getAllowedUnits()).contains(unit)){
+        if(type.getKind() == PhenomenonKind.QUALITATIVE && !type.getAllowedUnits().contains(unit)){
             System.out.println("Invalid Measurement Creation");
             return null;
         }
